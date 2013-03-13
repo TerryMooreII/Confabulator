@@ -1,0 +1,99 @@
+<html>
+<head>
+    <title>Chat Server</title>
+    <style type="text/css">
+        #messageContainer{
+            width:500px;
+            height:500px;
+            margin: auto auto;
+            border: 1px solid #333;
+            overflow: auto;
+        }
+        #messages{
+            padding:0;
+            margin:10px;
+            list-style: none;
+        }
+        #messages li{
+            margin:3px 0px 3px;
+        }
+        
+        .inputs{
+
+        }
+        .setHandle input[type="text"]{
+            height:32px;
+            width:343px;
+        }
+        .inputs{
+            display: block;
+            margin: 10px auto;
+            width:500px;
+            height:32px;
+            font-size:24px;
+        }
+        .saywhat input[type="text"]{
+            height:32px;
+            width:443px;
+        }
+        .saywhat input[type="submit"]{
+            height:32px;
+            width:50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="inputs setHandle">
+        <span>Who are you?</span> <input type="text" id="handle" />
+    </div>
+    <div id="messageContainer">
+        <ul id="messages"></ul>
+    </div>
+    <div class="inputs saywhat">
+        <form>
+            <input type="text" id="message" /> <input type="submit" id="send" value="Send"/>
+        </form>
+    </div>
+
+</body>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="socket.io.min.js"></script>
+     <script type="text/javascript">
+
+     var socket = io.connect('http://10.10.10.147:8088');
+        
+    // Log messages from the server
+    socket.on('message', function (data) {
+        $('#messages').append("<li><strong>"+data.user+"</strong>: " + data.message + "</li>")
+    });
+
+    $('.saywhat form').submit(function(e){
+        
+        e.preventDefault();
+        var handleId = $('#handle')
+        var handle = handleId.val();
+
+        if (handle === ''){
+            alert('Set Handle')
+            return false;
+        }
+
+        $('.setHandle span').text('Welcome ' + handle)
+        handleId.hide();
+        var text = $('#message').val();
+
+        if (text === '')
+            return false;
+
+        var data = {
+            user: handle,
+            message: text
+        };
+
+        socket.emit('message', data);
+        $('#message').val('');
+    })
+
+    </script>
+
+</html>
