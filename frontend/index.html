@@ -1,99 +1,169 @@
-<html>
-<head>
-    <title>Chat Server</title>
-    <style type="text/css">
-        #messageContainer{
-            width:500px;
-            height:500px;
-            margin: auto auto;
-            border: 1px solid #333;
-            overflow: auto;
-        }
-        #messages{
-            padding:0;
-            margin:10px;
-            list-style: none;
-        }
-        #messages li{
-            margin:3px 0px 3px;
-        }
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <style>
+            body {
+                padding-top: 60px;
+                padding-bottom: 40px;
+            }
+            .no-list-style{
+                list-style: none;
+            }
+        </style>
+        <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/main.css">
+
+        <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+        <![endif]-->
+
+        <!-- This code is taken from http://twitter.github.com/bootstrap/examples/hero.html -->
+
+        <div class="container">
+            <h1>The Confabulator</h1>
+        <div class="row">
+              <div class="span4 well">
+                <h4>Who's Online</h4>
+                <ul id="whos-online"  style="height:400px; overflow:auto" class="no-list-style">
+                </ul>
+            </div>
+            <div class="span6 well">
+                <ul id="messages" style="height:400px; overflow:auto"  class="no-list-style">
+                </ul>
+                <div class="inputs saywhat">
+                <div class="input-append">
+                  <input placeholder="Talk to me Goose" class="span5" id="message" type="text">
+                  <button id="send" class="btn" type="submit">Send!</button>
+                </div>
+                </div>
+            </div>
         
-        .inputs{
+        </div>
+            
+            <hr>
 
-        }
-        .setHandle input[type="text"]{
-            height:32px;
-            width:343px;
-        }
-        .inputs{
-            display: block;
-            margin: 10px auto;
-            width:500px;
-            height:32px;
-            font-size:24px;
-        }
-        .saywhat input[type="text"]{
-            height:32px;
-            width:443px;
-        }
-        .saywhat input[type="submit"]{
-            height:32px;
-            width:50px;
-        }
-    </style>
-</head>
-<body>
-    <div class="inputs setHandle">
-        <span>Who are you?</span> <input type="text" id="handle" />
-    </div>
-    <div id="messageContainer">
-        <ul id="messages"></ul>
-    </div>
-    <div class="inputs saywhat">
-        <form>
-            <input type="text" id="message" /> <input type="submit" id="send" value="Send"/>
-        </form>
-    </div>
+            <footer>
+                <p>&copy; TerryMooreII.com 2012</p>
+            </footer>
+            <div class="modal hide fade">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3>Chat Handle</h3>
+              </div>
+              <div class="modal-body">
+                <p>
+                    Enter a chat handle.
+                    <input id="handle" type="text" class="span3" >
+                </p>
+              </div>
+              <div class="modal-footer">
+                <a href="#" class="btn btn-primary">Start Chatting</a>
+              </div>
+            </div>
+        </div> <!-- /container -->
 
-</body>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script src="socket.io.min.js"></script>
-     <script type="text/javascript">
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
 
-     var socket = io.connect('http://10.10.10.147:8088');
-        
-    // Log messages from the server
-    socket.on('message', function (data) {
-        $('#messages').append("<li><strong>"+data.user+"</strong>: " + data.message + "</li>")
-    });
+        <script src="js/vendor/bootstrap.min.js"></script>
 
-    $('.saywhat form').submit(function(e){
-        
-        e.preventDefault();
-        var handleId = $('#handle')
-        var handle = handleId.val();
+        <script src="js/main.js"></script>
+        <script src="socket.io.min.js"></script>
+        <script type="text/javascript">
+        (function(){
+            var handle = 'anonomous';
+            var socket = null;
 
-        if (handle === ''){
-            alert('Set Handle')
-            return false;
-        }
+            $('.modal').modal();
+            $('.modal a').on('click', function(){
+                var h = $('#handle').val();
+                if ( h != ''){
+                    handle = h;
+                    $('.modal').modal('hide'); 
+                    establishConnection(handle);   
+                }
+            });
 
-        $('.setHandle span').text('Welcome ' + handle)
-        handleId.hide();
-        var text = $('#message').val();
+            var establishConnection = function(){
+                socket = io.connect('http://10.104.100.52:8088');
+                var data = {
+                    user: handle
+                };
+                socket.emit('newUser', data);               
+                loadChatEvents();
+            }
 
-        if (text === '')
-            return false;
+            var loadChatEvents = function(){
+                    
+                // Log messages from the server
+                socket.on('message', function (data) {
+                    var message = '';
+                    if (data.messageType === 'system'){
+                        message = "<li style='padding:10px 0px'><span class='alert alert-info'>" + data.message + "</span></li>";
+                    }else{
+                        message = "<li style='padding:5px'><strong>"+data.user+"</strong>: " + data.message + "</li>";
+                    }
+                    $('#messages').append(message)
+                    $('#messages').scrollTop($('#messages')[0].scrollHeight);
+                });
+                socket.on('userList', function (data) {
+                    $('#whos-online').empty();
+                    $.each(data.users, function(k, handle){
+                        $('#whos-online').append('<li><i class="icon-user"></i><span style="padding:5px">'+handle+'</span></li>')    
+                    });
+                    
+                });
 
-        var data = {
-            user: handle,
-            message: text
-        };
+                $('#message').on('keyup', function(e){
+                    if (e.keyCode === 13)
+                        $('#send').trigger('click');
+                });
 
-        socket.emit('message', data);
-        $('#message').val('');
-    })
+                $('#send').on('click', function(e){
+                    e.preventDefault();
+                    var text = $('#message').val();
 
-    </script>
+                    if (text === '')
+                        return false;
 
+                    var data = {
+                        user: handle,
+                        message: text
+                    };
+
+                    socket.emit('message', data);
+                    $('#message').val('');
+                });
+                window.onbeforeunload = function(e){
+                    var data = {
+                        user: handle
+                    };
+                    socket.emit('leaving', data);
+                }
+            }
+    
+        })();
+
+        </script>
+
+        <script>
+            var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+            g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+            s.parentNode.insertBefore(g,s)}(document,'script'));
+        </script>
+    </body>
 </html>

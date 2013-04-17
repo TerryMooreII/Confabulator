@@ -13,6 +13,7 @@ var message = function(obj){
     this.message = obj.message;
     this.user = obj.user;
     this.timestamp = new Date();
+    return this;
 };
 
 var Status = function(message){
@@ -38,10 +39,11 @@ var server = http.createServer(function(request, response) {
         if ( query.addMessage ){ 
             try{
                 var message = JSON.parse(query.addMessage);
+
                 messages.push(new Message(message));
-                response.end(JSON.stringify(message));
+                response.end(JSON.stringify(messages));
             }catch (e){
-                response.end(new Status('Invalid JSON'))    
+                response.end(JSON.stringify(new Status('Invalid JSON')));    
             }
             
         }else{
@@ -69,7 +71,7 @@ var server = http.createServer(function(request, response) {
             response.end(JSON.stringify(user));
         }else{
 
-            response.end(JSON.stringify(new Status('Invalid Query Parameter'));
+            response.end(JSON.stringify(new Status('Invalid Query Parameter')));
         }
         
     } else {
@@ -82,5 +84,7 @@ var server = http.createServer(function(request, response) {
 
 console.log('Server running on port 8088');
 
+//Add User: http://localhost:8088/adduser?addNewUser={%22fullname%22:%22TerryMoore%22,%20%22handle%22:%22Node%20Dude%22}
+//List User: http://localhost:8088/users
 
 
